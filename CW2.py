@@ -23,23 +23,41 @@ def load_data(file_path, delimiter=','):
     if not os.path.isfile(file_path):
         warnings.warn(f"Task 1: Warning - CSV file '{file_path}' does not exist.")
         return None, None, None
-    # Insert your code here for task 1
+
+    # read in data, set variables
+    data = pd.read_csv("DT.csv")
+    num_rows = len(data)
+    header_list = data.columns
+
+    # convert data to cwk specified types
+    data = data.to_numpy()
+    header_list = header_list.to_list()
+
     return num_rows, data, header_list
 
 # Task 2[10 marks]: Give back the data by removing the rows with -99 values 
 def filter_data(data):
-    filtered_data=[None]*1
-    # Insert your code here for task 2
-
+    filtered_data = []
+    
+    for row in data:
+        if -99 not in row:
+            filtered_data.append(row)
+    
+    filtered_data = np.array(filtered_data)
     return filtered_data
 
 # Task 3 [10 marks]: Data statistics, return the coefficient of variation for each feature, make sure to remove the rows with nan before doing this. 
 def statistics_data(data):
     coefficient_of_variation=None
     data=filter_data(data)
-    # Calculate the mean and standard deviation for each feature
-    # Insert your code here for task 3
 
+    # Calculate the mean and standard deviation for each feature
+    feature_means = np.mean(data, axis=0)
+    feature_stds = np.std(data, axis=0)
+    
+    # Calculate the coefficient of variation
+    coefficient_of_variation = feature_stds / feature_means
+    
     return coefficient_of_variation
 
 # Task 4 [10 marks]: Split the dataset into training (70%) and testing sets (30%), 
@@ -47,10 +65,16 @@ def statistics_data(data):
 # meaning that the ratio between 0 and 1 in the lable column stays the same in train and test groups.
 # Also when using train_test_split function from scikit-learn make sure to use "random_state=1" as an argument. 
 def split_data(data, test_size=0.3, random_state=1):
-    x_train, x_test, y_train, y_test=None, None, None, None
+    x_train, x_test, y_train, y_test = None, None, None, None
     np.random.seed(1)
-    # Insert your code here for task 4
-
+    
+    # split data around last column (test + target)
+    x = data[:, :-1]
+    y = data[:, -1]
+    
+    # Split data into training + testing sets using scikit-learn train_test_split
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=random_state, stratify=y)
+    
     return x_train, x_test, y_train, y_test
 
 # Task 5 [10 marks]: Train a decision tree model with cost complexity parameter of 0
@@ -93,6 +117,8 @@ def important_feature(x_train, y_train,header_list):
     # Train decision tree model and increase Cost Complexity Parameter until the depth reaches 1
     # Insert your code here for task 10
     return best_feature
+
+
 # Example usage (Template Main section):
 if __name__ == "__main__":
     # Load data
@@ -113,6 +139,7 @@ if __name__ == "__main__":
     for header, coef_var in zip(header_list[:-1], coefficient_of_variation):
         print(f"{header}: {coef_var}")
     print("-" * 50)
+
     # Split data
     x_train, x_test, y_train, y_test = split_data(data_filtered)
     print(f"Train set size: {len(x_train)}")
