@@ -72,7 +72,7 @@ def split_data(data, test_size=0.3, random_state=1):
     x = data[:, :-1]
     y = data[:, -1]
     
-    # Split data into training + testing sets using scikit-learn train_test_split
+    # split data into training + testing sets using scikit-learn train_test_split
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=random_state, stratify=y)
     
     return x_train, x_test, y_train, y_test
@@ -80,42 +80,96 @@ def split_data(data, test_size=0.3, random_state=1):
 # Task 5 [10 marks]: Train a decision tree model with cost complexity parameter of 0
 def train_decision_tree(x_train, y_train,ccp_alpha=0):
     model=None
-    # Insert your code here for task 5
+    
+    model = DecisionTreeClassifier(ccp_alpha=ccp_alpha)
+    
+    # train the decision tree model
+    model.fit(x_train, y_train)
+
     return model
 
 # Task 6 [10 marks]: Make predictions on the testing set 
 def make_predictions(model, X_test):
-    y_test_predicted=None
-    # Insert your code here for task 6
+    y_test_predicted = None
+    # use the predict method of the trained model to make predictions on X_test
+    y_test_predicted = model.predict(X_test)
+    
     return y_test_predicted
 
 # Task 7 [10 marks]: Evaluate the model performance by taking test dataset and giving back the accuracy and recall 
 def evaluate_model(model, x, y):
-    accuracy, recall=None,None
-    # Insert your code here for task 7
+    accuracy, recall = None, None
+    
+    y_pred = model.predict(x)
+    
+    accuracy = accuracy_score(y, y_pred)
+    
+    recall = recall_score(y, y_pred)
+    
     return accuracy, recall
 
 # Task 8 [10 marks]: Write a function that gives the optimal value for cost complexity parameter
 # which leads to simpler model but almost same test accuracy as the unpruned model (+-1% of the unpruned accuracy)
 def optimal_ccp_alpha(x_train, y_train, x_test, y_test):
-    optimal_ccp_alpha=None
-
-    # Insert your code here for task 8
-
+    optimal_ccp_alpha = None
+    
+    # train unpruned model set ccp_alpha=0
+    unpruned_model = train_decision_tree(x_train, y_train, ccp_alpha=0)
+    
+    # evaluate the unpruned model
+    unpruned_accuracy, _ = evaluate_model(unpruned_model, x_test, y_test)
+    
+    # define ccp_alpha values to explore
+    ccp_alphas = np.arange(0, 0.1, 0.001)  # Adjust the range and step size as needed
+    
+    # iterate ccp_alpha values
+    for ccp_alpha in ccp_alphas:
+        # train model using current ccp_alpha
+        model = train_decision_tree(x_train, y_train, ccp_alpha=ccp_alpha)
+        
+        # evaluate model on the test set
+        accuracy, _ = evaluate_model(model, x_test, y_test)
+        
+        # measure accuracy is within 1% of the unpruned accuracy
+        if abs(accuracy - unpruned_accuracy) <= 0.01:
+            optimal_ccp_alpha = ccp_alpha
+        else:
+            # stop training
+            break  
+    
     return optimal_ccp_alpha
 
 # Task 9 [10 marks]: Write a function that gives the depth of a decision tree that it takes as input.
 def tree_depths(model):
     depth=None
-    # Get the depth of the unpruned tree
-    # Insert your code here for task 9
+
+    # set depth of tree
+    depth = model.tree_.max_depth
+
     return depth
 
  # Task 10 [10 marks]: Feature importance 
-def important_feature(x_train, y_train,header_list):
-    best_feature=None
-    # Train decision tree model and increase Cost Complexity Parameter until the depth reaches 1
-    # Insert your code here for task 10
+def important_feature(x_train, y_train, header_list):
+    best_feature = None
+    
+    # train tree until ccp => 1
+    ccp_alpha = 0
+    while True:
+        model = train_decision_tree(x_train, y_train, ccp_alpha=ccp_alpha)
+        depth = tree_depths(model)
+        
+        if depth == 1:
+            break
+        
+        # adjusts ccp in small increments
+        ccp_alpha += 0.0005  
+    
+    # get index of primary feature
+    important_feature_index = model.tree_.feature[0]
+    
+    # get header of primary feature
+    best_feature = header_list[important_feature_index]
+    
     return best_feature
 
 
@@ -156,6 +210,7 @@ if __name__ == "__main__":
     acc_test, recall_test = evaluate_model(model, x_test, y_test)
     print(f"Initial Decision Tree - Test Accuracy: {acc_test:.2%}, Recall: {recall_test:.2%}")
     print("-" * 50)
+
     # Train Pruned Decision Tree
     model_pruned = train_decision_tree(x_train, y_train, ccp_alpha=0.002)
     print("Pruned Decision Tree Structure:")

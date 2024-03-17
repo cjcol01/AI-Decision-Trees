@@ -25,3 +25,33 @@ if __name__ == "__main__":
     print(f"Train set size: {len(x_train)}")
     print(f"Test set size: {len(x_test)}")
     print("-" * 50)
+
+    # Train initial Decision Tree
+    model = train_decision_tree(x_train, y_train)
+    print("Initial Decision Tree Structure:")
+    print_tree_structure(model, header_list)
+    print("-" * 50)
+
+    # Evaluate initial model
+    acc_test, recall_test = evaluate_model(model, x_test, y_test)
+    print(f"Initial Decision Tree - Test Accuracy: {acc_test:.2%}, Recall: {recall_test:.2%}")
+    print("-" * 50)
+
+    # Find optimal ccp_alpha
+    optimal_alpha = optimal_ccp_alpha(x_train, y_train, x_test, y_test)
+    print(f"Optimal ccp_alpha for pruning: {optimal_alpha:.4f}")
+    print("-" * 50)
+
+    # Get tree depths
+    depth_initial = tree_depths(model)
+    # depth_pruned = tree_depths(model_pruned)
+    # depth_optimized = tree_depths(model_optimized)
+    print(f"Initial Decision Tree Depth: {depth_initial}")
+    # print(f"Pruned Decision Tree Depth: {depth_pruned}")
+    # print(f"Optimized Decision Tree Depth: {depth_optimized}")
+    print("-" * 50)
+
+    # Feature importance
+    important_feature_name = important_feature(x_train, y_train,header_list)
+    print(f"Important Feature for Fraudulent Transaction Prediction: {important_feature_name}")
+    print("-" * 50)
